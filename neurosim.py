@@ -4,6 +4,9 @@ from math import exp, log
 import networkx as nx
 import matplotlib.pyplot as plt
 import itertools
+import copy
+from scipy.optimize import minimize
+import numba
 
 
 np.random.seed = 42
@@ -12,8 +15,26 @@ N = 100
 steps = 1000
 T = 10
 delta = T/steps
-x = 0 * np.random.random(steps*N)
+x = np.zeros((N, steps))
 
+
+sensitive = 0.2
+
+xinf = 3
+xmax = 5
+intensity = 4
+
+xreal = copy.copy(x)
+
+
+for i in range(int(sensitive*N)):
+    for j in range(int(xinf*steps/T), int(xmax*steps/T)):
+        xreal[i][j] = intensity
+
+
+for i in range(int(sensitive*N)):
+    for j in range(int(xinf*steps/T), int(xmax*steps/T)):
+        x[i][j] = intensity
 
 b = log(20) * np.ones(N)
 
@@ -46,20 +67,22 @@ def h(i, j, t, tjs):
         return 0
 
 
-def K(i, t, N):
-    #  if x[t*N+i] != 0:
-    #      return int(i <= N*0.05) * x[t*N+i]
+def K(i, t, N, input=[]):
+    if input == []:
+        if t > xinf and t < xmax:
+            return intensity * int(i <= N*sensitive)
+    else:
+        return input[i][min(steps-1, int(t*steps/T))]
     return 0
 
 
-def lam(k, t, spikes):
-    temp = (b[k] + K(k, t, N) +
+def lam(k, t, spikes, input=[]):
+    temp = (b[k] + K(k, t, N, input) +
             sum(h(k, j, t, spikes[j]) for j in range(N)))
     if temp > log(200):
-        print("aie")
-    if temp > log(500):
-        print(k, t)
-        raise "lambda trop grand"
+        pass
+    if temp > log(1000):
+        pass
     return exp(temp)  # min(temp, log(50)))
 
 
@@ -81,7 +104,7 @@ def sim():
             k = 0
             temp = mem[k]
             for neuron in range(N):
-                for time in range(histoStart, int(steps * s / T)):
+                for time in range(histoStart, int(steps * s / T) + 1):
                     histo[neuron][time] = mem[neuron]
             histoStart = int(steps * s / T)
             while temp < d * lambda1:
@@ -97,43 +120,72 @@ print("simulation...")
 print("ok")
 
 
-fig, ax = plt.subplots(1, 1, figsize=[15, 15])
-ax.plot(range(len(c[0])), c[0])
-for i in a[0]:
-    ax.vlines(i*steps/T, 0, 10, colors="red")
-plt.show()
-
-fig, ax = plt.subplots(1, 1, figsize=[15, 15])
-
-# ax.axvspan(light_onset_time, light_offset_time, alpha=0.5, color='greenyellow')
-
-for i in range(10):
-    ax.vlines(a[i], i - 0.5, i + 0.5)
-
-ax.set_xlim([-1, T])
-
-ax.set_ylabel('Neuron')
-
-ax.set_title('Neuronal Spike Times (sec)')
-
-plt.show()
-
-
-plt.hist(list(itertools.chain(*a[1:80])), density=False, bins=500)
-plt.xlabel("time in sec")
-plt.ylabel("number of spikes")
-plt.vlines([2], -10, 100, colors=["black"])
-plt.show()
-
-
 def logp(sim):
-    spikes, count, histo = sim
+    spikes, _, histo = sim
     temp = 0
     for i in range(N):
-        temp += sum([log(logl) for logl in spikes[i]])
+        temp += sum([log(max(histo[i][int(t*steps/T)], 0.01)) for t in spikes[i]])
         temp -= sum([f for f in histo[i]]) / steps
     return temp
 
 
+d = []
+
+for i in range(steps):
+    if c[0][i] != 0:
+        d.append(log(c[0][i] / (exp(log(20) + sum(h(0, j, i*T/steps, a[j]) for j in range(N))))))
+    else:
+        d.append(0)
+# plt.plot(range(steps), d)
+# plt.plot(range(len(c[0])), [m for m in c[0]])
+# plt.show()
+
+
+
+@numba.njit()
+def modified_hist(x, xreal, N, steps, c):
+    vect = (x-xreal)
+    temp = c
+    for i in range(N):
+        for j in range(steps):
+            temp[i][j] = temp[i][j] * exp(vect[i][j])   #Knjit(i, j*T/steps, N, x-xreal, steps, T))
+    return temp
+
+
+# important pour numba
+useless = modified_hist(np.zeros((1, 1)), xreal, 1, 1, copy.copy(c))
+
+print(modified_hist(np.zeros((N, steps)), xreal, N, steps, copy.copy(c)))
+
+
 print("logp :")
 print(logp((a, b, c)))
+print(logp((a, b, modified_hist(np.zeros((N, steps)), xreal, N, steps, copy.copy(c)))))
+print(logp((a, b, modified_hist(5 * np.ones((N, steps)), xreal, N, steps, copy.copy(c)))))
+print("ok")
+
+
+def toMin(input):
+
+    print(np.random.random(1))
+    input = np.reshape(input, (N, steps))
+    temp = (a, b, modified_hist(input, xreal, N, steps, c))
+    return -logp(temp)
+
+
+print("minimisation...")
+bounds = np.array([(0, 5) for i in range(N*steps)])
+min_sd_results = minimize(fun=toMin,
+                          x0=np.zeros((N * steps)),
+                          bounds=bounds)
+print("fait")
+
+print(toMin(min_sd_results.x))
+print(toMin(np.zeros(N*steps)))
+print(min_sd_results.x)
+
+a = copy.copy(min_sd_results.x)
+a = np.reshape(a, (N, steps))
+plt.plot(range(len(a[1])), a[1])
+plt.plot(range(len(x[1])), x[1])
+plt.show()
