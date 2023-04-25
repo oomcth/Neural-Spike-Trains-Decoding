@@ -1,13 +1,8 @@
 import numpy as np
-import random as rnd
-from math import exp, log, isnan, sin, pi, sqrt
-import networkx as nx
+from math import log
 import matplotlib.pyplot as plt
 import copy
-import numba
 import random
-import itertools
-import simu
 import Tools
 from tqdm import tqdm
 
@@ -38,33 +33,47 @@ class HMC:
 
     def RunChain(self):
         chaine = np.zeros((self.count + 1, self.steps))
-        chaine[0] = self.start
+        chaine[0] = self.tools.bestWithGradientDescent
         step = 0
 
         print("running HMC chain")
         for i in tqdm(range(self.count)):
-            # plt.plot(range(steps), chaine[count])
-            # plt.show()
-            # print(i, step)
-            # print(chaine[i][460])
 
             xtest = np.copy(chaine[i])
             xinit = copy.copy(xtest)
-            ztest = 0.5 * np.random.multivariate_normal(np.zeros(self.steps),
+            ztest = np.random.multivariate_normal(np.zeros(self.steps),
                                                         np.identity(self.steps))
             zinit = copy.copy(ztest)
             for j in range(self.L):
-                ztest += (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
+                ztest -= (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
                 xtest += self.sigma * ztest
-                ztest += (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
+                ztest -= (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
 
             u = log(random.random())
-
             if u < -(self.H(xtest, ztest) - self.H(xinit, zinit)):
                 chaine[i+1] = xtest
+                with open('HMC/' + str(i) + '.npy', 'wb') as f:
+                    np.save(f, xtest)
                 step += 1
             else:
                 chaine[i+1] = xinit
+                with open('HMC/' + str(i) + '.npy', 'wb') as f:
+                    np.save(f, xinit)
         print("ratio = ", step*100/self.count, "%")
-        self.chain = chaine
+        self.chaine = chaine
+
+        temp = copy.copy([np.mean(chaine[10000:19999, i]) for i in range(self.sim.steps)])
+        temp2 = copy.copy(temp)
+        for i in range(41, self.sim.steps-32):
+            temp[i] = np.mean(temp2[i-30:i+30])
+        self.continuous = temp
         return chaine
+
+    def plot(self):
+        plt.plot(range(self.sim.steps), self.sim.inputs[0], color='red')
+        plt.plot(range(self.sim.steps), [np.mean(self.chaine[10000:19999, i]) for i in range(self.sim.steps)], color='black')
+        plt.show()
+
+        plt.plot(range(self.sim.steps), self.sim.inputs[0], color='red')
+        plt.plot(range(self.sim.steps), self.continuous, color='black')
+        plt.show()

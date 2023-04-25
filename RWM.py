@@ -1,13 +1,8 @@
 import numpy as np
-import random as rnd
-from math import exp, log, isnan, sin, pi, sqrt
-import networkx as nx
+from math import log
 import matplotlib.pyplot as plt
 import copy
-import numba
 import random
-import itertools
-import simu
 import Tools
 from tqdm import tqdm
 
@@ -22,14 +17,15 @@ class RWM:
         self.Mat = np.linalg.cholesky(tools.hess)
 
     def stable(self, x):
-        temp = (self.tools.logp((copy.copy(self.sim.spikes), self.sim.counts,
+        temp = (self.tools.logp((copy.copy(self.sim.spikes),
+                                 self.sim.counts,
                                  Tools.modified_hist(copy.copy(x),
                                                      np.zeros((self.sim.N,
                                                                self.sim.steps)),
                                                     self.sim.N, self.sim.steps,
                                                     copy.copy(self.tools.lambdas),
                                                     self.sim.receptors)))
-                                    + self.tools.logapriori(copy.copy(x)))
+                + self.tools.logapriori(copy.copy(x)))
         return temp
 
     def next(self, x):
@@ -63,8 +59,8 @@ class RWM:
             if log(u) <= test:
                 # print(sy)
                 chaine[i+1] = y
-                # with open('simu/RMC/' + str(i) + '.npy', 'wb') as f:
-                #     np.save(f, y)
+                with open('simu/RMC/' + str(i) + '.npy', 'wb') as f:
+                    np.save(f, y)
                 step += 1
             else:
                 # print(sx)
