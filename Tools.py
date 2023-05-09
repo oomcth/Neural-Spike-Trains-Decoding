@@ -161,7 +161,7 @@ class Tools:
     # return the gradient of the probability of the spikes knowing the input
     # and the network's parameters
     def gradtot(self, x):
-        return self.gradSimu(x) + 5 * self.gradlogapriori(x)
+        return self.gradSimu(x) + self.gradlogapriori(x)
 
     # compute the hessian in x
     def approxhessian(self, x):
