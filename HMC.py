@@ -35,19 +35,21 @@ class HMC:
         chaine = np.zeros((self.count + 1, self.steps))
         chaine[0] = self.tools.bestWithGradientDescent
         step = 0
+        zs = np.random.multivariate_normal(np.zeros(self.steps),
+                                           np.identity(self.steps),
+                                           self.count+1)
 
         print("running HMC chain")
         for i in tqdm(range(self.count)):
 
             xtest = np.copy(chaine[i])
             xinit = copy.copy(xtest)
-            ztest = np.random.multivariate_normal(np.zeros(self.steps),
-                                                        np.identity(self.steps))
+            ztest = zs[i]
             zinit = copy.copy(ztest)
             for j in range(self.L):
-                ztest -= (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
+                ztest += (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
                 xtest += self.sigma * ztest
-                ztest -= (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
+                ztest += (self.sigma / 2) * self.tools.gradtot(copy.copy(xtest))
 
             u = log(random.random())
             if u < -(self.H(xtest, ztest) - self.H(xinit, zinit)):
@@ -59,6 +61,7 @@ class HMC:
                 chaine[i+1] = xinit
                 with open('HMC/' + str(i) + '.npy', 'wb') as f:
                     np.save(f, xinit)
+            print(step*100/(i+1))
         print("ratio = ", step*100/self.count, "%")
         self.chaine = chaine
 

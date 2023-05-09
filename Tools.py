@@ -99,7 +99,7 @@ class Tools:
         return temp
 
     # gradient descent to find our Maximum A Posteriori (xMAP)
-    def gradientDescent(self, x0=[], eta=0.1, max_iter=400, tol=0.001):
+    def gradientDescent(self, x0=[], eta=0.1, max_iter=5000, tol=0.001):
         grad_f = self.gradtot
         if x0 == []:
             x = np.zeros(self.steps)

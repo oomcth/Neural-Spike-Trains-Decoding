@@ -15,8 +15,8 @@ N = 100  # Number of neurons
 steps = 1000  # in how many 'steps' is the time divided
 T = 10  # how long does the simulation run for (in s or an arbitrary unit)
 xreal = np.zeros((N, steps))  # real stimulus received by the neurons
-receptor = 0.4  # proportion of neurons that receive the input
-intensity = 1  # intensity of the input
+receptor = 1  # proportion of neurons that receive the input
+intensity = 4  # intensity of the input
 
 
 # creating the input xreal
@@ -31,7 +31,7 @@ for i in range(int(receptor*N)):
 
 # runs a simulation
 if True:
-    simu = Simulator(N, steps, receptor, xreal, T, e=0.07037)
+    simu = Simulator(N, steps, receptor, xreal, T, e=0)
     simu.LoadAdjacency()
     simu.normalSimu()
 
@@ -44,7 +44,7 @@ if False:
 
 
 # plots data about the simulation
-if False:
+if True:
     simu.plotAgregatedSpikes()
     simu.plotHisto(50)
     simu.plotSpikes(30, 50)
@@ -64,13 +64,13 @@ if True:
 # runs a Random Walk Monte Carlo Chain to estimate the bayesian
 # estimator of the input
 if False:
-    rwm = RWM(simu, tools, 0.1, 20000)
+    rwm = RWM(simu, tools, 0.02, 200000)
     rwm.ComputeChain()
     rwm.plot()
 
 # runs a Hamiltonian Monte Carlo Chain to estimate the bayesian
 # estimator of the input
 if True:
-    hmc = HMC(simu, tools, 20000, 1, 0.008)
+    hmc = HMC(simu, tools, 100000, 1, 0.02)
     hmc.RunChain()
     hmc.plot()

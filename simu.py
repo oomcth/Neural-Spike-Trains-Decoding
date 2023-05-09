@@ -22,7 +22,7 @@ class Simulator:
         self.relevant = [[i] for i in range(N)]  # neuron adjascent to i
         # (when we'll add an adjascency matrix, the list will be expanded)
 
-        self.base = log(20)  # base firing rate of neurons
+        self.base = log(50)  # base firing rate of neurons
         self.e = e  # we add e to the base firing rate of neurons
         # e is usefull to approach a critical state and have a
         # maximum correlation between neurons
@@ -175,7 +175,7 @@ class Simulator:
         plt.show()
 
     # plot the histogram of the amount of spikes in all the network across time
-    def plotAgregatedSpikes(self):
+    def plotAgregatedSpikes(self): 
         fig, ax = plt.subplots(1, 1, figsize=[15, 15])
 
         ax.hist(list(itertools.chain(*self.spikes[1:80])),

@@ -50,25 +50,17 @@ class RWM:
             sx = self.stable(x)
             sy = self.stable(y)
             test = (sy - sx)
-            # print(stable(y))
-            # print(q(x, y, np.identity(N)))
-            # print(stable(x))
-            # print(q(y, x, np.identity(N)))
-            # print(np.linalg.norm(y-x))
 
             if log(u) <= test:
-                # print(sy)
                 chaine[i+1] = y
-                with open('simu/RMC/' + str(i) + '.npy', 'wb') as f:
+                with open('RWM2/' + str(i) + '.npy', 'wb') as f:
                     np.save(f, y)
                 step += 1
             else:
-                # print(sx)
                 chaine[i+1] = x
-                with open('RWM/' + str(i) + '.npy', 'wb') as f:
+                with open('RWM2/' + str(i) + '.npy', 'wb') as f:
                     np.save(f, y)
-            # plt.plot(range(steps), chaine[i+1])
-            # plt.show()
+            print(step/(i+1))
         print("ratio = ", step*100/self.count, "%")
         print("simulation terminée")
         self.chaine = chaine
