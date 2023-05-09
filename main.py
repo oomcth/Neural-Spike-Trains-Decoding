@@ -16,7 +16,7 @@ steps = 1000  # in how many 'steps' is the time divided
 T = 10  # how long does the simulation run for (in s or an arbitrary unit)
 xreal = np.zeros((N, steps))  # real stimulus received by the neurons
 receptor = 1  # proportion of neurons that receive the input
-intensity = 4  # intensity of the input
+intensity = 1  # intensity of the input
 
 
 # creating the input xreal
