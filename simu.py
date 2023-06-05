@@ -100,7 +100,7 @@ class Simulator:
     # compute the Firing Rate of neuron k at time t
     def lam(self, k, t, spikes, inputs):
         temp = (self.base + self.K(k, t, inputs) +
-                sum(self.h(k, j, t, spikes[k]) for j in self.relevant[k]))
+                sum(self.h(k, j, t, spikes[j]) for j in self.relevant[k]))
         return exp(temp)
 
     # simulate the Hawkes process (Neurons' activity)
