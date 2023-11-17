@@ -1,1 +1,1 @@
-Bayesian Decoding of a simulated (real) Neural Network using an extension of the linear non-linear Poisson model and statistical methods (namely : gradient descent, Hamiltonian Monte Carlo, Random Walk Monte Carlo)
+Bayesian Decoding of a simulated (biological) Neural Network using an extension of the linear non-linear Poisson model and statistical methods (namely : gradient descent, Hamiltonian Monte Carlo, Random Walk Monte Carlo)
